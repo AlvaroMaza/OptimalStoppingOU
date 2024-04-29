@@ -59,7 +59,7 @@ est.OU <- function (X, delta) {
   alpha <- exp(theta_hat[1])
   mu  <- theta_hat[2]
   sigma <- exp(theta_hat[3])
-  fisher_info<-solve(hessian/n)
+  fisher_info<-hessian/n
   
   ci <- compute_CI(theta_hat, fisher_info, n)
   return( ci )
@@ -70,5 +70,47 @@ X <- r_ou(n = 1, t = seq(0, 1, len = 201), x0 = 10, mu = 15, sigma = 1, alpha = 
 X <- as.vector(X)
 delta <- 0.005
 
+result <- est.OU(X, delta)
 
-est.OU(X, delta)
+
+
+
+
+
+############### TEST CI ###############
+
+# Set parameters
+n_iterations <- 100
+percentage_alpha <- numeric(n_iterations)
+percentage_mu <- numeric(n_iterations)
+percentage_sigma <- numeric(n_iterations)
+
+T <- 10
+delta <- 0.01
+
+mu <- 15
+sigma <- 1
+alpha <- 4
+
+
+# Loop through iterations
+for (i in 1:n_iterations) {
+  X <- r_ou(n = 1, t = seq(0, T, len = (T/delta + 1)), x0 = 15, mu = mu, sigma = sigma, alpha = alpha)$data
+  X <- as.vector(X)
+
+  result <- est.OU(X, delta)
+  percentage_alpha[i] <- result[1, 2] < alpha & alpha < result[1, 3]
+  percentage_mu[i] <- result[2, 2] < mu & mu < result[2, 3]
+  percentage_sigma[i] <- result[3, 2] < sigma & sigma < result[3, 3]
+}
+
+
+# Calculate percentages
+percentage_alpha <- mean(percentage_alpha)
+percentage_mu <- mean(percentage_mu)
+percentage_sigma <- mean(percentage_sigma)
+
+print(paste("Percentage for alpha:", percentage_alpha))
+print(paste("Percentage for mu:", percentage_mu))
+print(paste("Percentage for sigma:", percentage_sigma))
+
