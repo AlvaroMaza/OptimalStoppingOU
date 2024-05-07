@@ -1,5 +1,6 @@
 library(goffda)
 library(GGally)
+library(manipulate)
 
 
 
@@ -64,7 +65,7 @@ est_OU <- function (X, delta, theta0 = c(log(1), mean(X), log(1))) {
   fisher_info<-hessian/n
   
   ci <- compute_CI(theta_hat, fisher_info, n)
-  return(list(parameters = c(alpha, mu, sigma), fisher_info = fisher_info), ci = ci)
+  return(list(parameters = c(alpha, mu, sigma), fisher_info = fisher_info, ci = ci))
 }
 
 
@@ -73,54 +74,62 @@ est_OU <- function (X, delta, theta0 = c(log(1), mean(X), log(1))) {
 
 ############### PAIRWISE PLOT ###############
 
-#Parameters
-sample_size <- 1000
-T <- 5
-delta <- 0.02
-n <-(T/delta + 1)
-mu <- 1
-sigma <- 1
-alpha <- 1.4
-theta <- c(log(alpha), mu, log(sigma))
-
-
-#Estimation
-data <- data.frame(alpha = numeric(length = sample_size),
-                               mu = numeric(length = sample_size),
-                               sigma = numeric(length = sample_size))
-for (i in 1:sample_size) {
-  X <- r_ou(n = 1, t = seq(0, T, len = (T/delta + 1)), x0 = 15, mu = mu, sigma = sigma, alpha = alpha)$data
+# Define the estimation function
+estimation_function <- function(mu, sigma, alpha, sample_size = 500, T = 5, delta = 0.02) {
+  n <- (T/delta + 1)
+  theta <- c(log(alpha), mu, log(sigma))
   
+  # Estimation
+  data <- data.frame(alpha = numeric(length = sample_size),
+                     mu = numeric(length = sample_size),
+                     sigma = numeric(length = sample_size))
+  for (i in 1:sample_size) {
+    X <- r_ou(n = 1, t = seq(0, T, len = (T/delta + 1)), x0 = 5, mu = mu, sigma = sigma, alpha = alpha)$data
+    
+    result <- est_OU(X, delta)
+    R <- chol(result$fisher_info)
+    
+    point <- sqrt(n) * (R %*% (result$parameters - theta))
+    data[i,] <- point
+  }
   
-  result <- est_OU(X, delta)
-  R <- chol(result$fisher_info)
+  # Plot
+  density_with_normal <- function(data, mapping, ...) {
+    p <- ggplot(data = data, mapping = mapping) +
+      geom_density(color = "turquoise") + 
+      stat_function(fun = dnorm, args = list(mean = 0, sd = 1)) +
+      theme_minimal() +
+      xlim(c(-6,6))
+  }
   
-  point <- sqrt(n) * (R %*% (result$parameters - theta))
-  data[i,] <- point
+  scatterplots <- function(data, mapping, ...) {
+    p <- ggplot(data = data, mapping = mapping) +
+      geom_point(color = "turquoise") +
+      theme_minimal() +
+      xlim(c(-6,6)) +
+      ylim(c(-6,6))
+  }
+  
+  ggpairs(data, 
+          upper = list(continuous = wrap("cor", size = 4)),
+          lower = list(continuous = scatterplots),
+          diag = list(continuous = density_with_normal)
+  )
 }
 
-#Plot
-density_with_normal <- function(data, mapping, ...) {
-  p <- ggplot(data = data, mapping = mapping) +
-    geom_density(color = "turquoise") + 
-    stat_function(fun = dnorm, args = list(mean = 0, sd = 1)) +
-    theme_minimal() +
-    xlim(c(-6,6))
-}
 
-scatterplots <- function(data, mapping, ...) {
-  p <- ggplot(data = data, mapping = mapping) +
-    geom_point(color = "turquoise") +
-    theme_minimal() +
-    xlim(c(-6,6)) +
-    ylim(c(-6,6))
-}
+# In case manipulate is not working properly
+manipulate(plot(1:5, cex=size), size = slider(0.5,10,step=0.5))
 
-ggpairs(data, 
-        upper = list(continuous = wrap("cor", size = 4)),
-        lower = list(continuous = scatterplots),
-        diag = list(continuous = density_with_normal)
+# Create the manipulate function
+manipulate(
+  estimation_function(mu, sigma, alpha),
+  mu = slider(0, 5, initial = 1, step = 0.1),
+  sigma = slider(0.1, 5, initial = 1, step = 0.1),
+  alpha = slider(0.1, 5, initial = 1.4, step = 0.1)
 )
+
+
 
 
 
