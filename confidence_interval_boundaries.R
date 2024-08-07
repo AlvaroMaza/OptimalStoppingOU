@@ -41,7 +41,7 @@ compute_proportions_from_files <- function(M = 100) {
 }
 
 # Set parameters
-M <- 100
+M <- 200
 
 # Compute proportions from saved files
 results <- compute_proportions_from_files(M = M)
@@ -56,7 +56,7 @@ q_alpha <- qnorm(1 - alpha / 2)
 dotted_lines <- alpha + c(-1, 1) * q_alpha * sqrt(alpha * (1 - alpha) / M)
 
 # Save the plot as a PDF
-pdf(file = "plots/CI_boundary_plot.pdf")
+pdf(file = "scenario_plots/CI_boundary_plot.pdf", width = 12, height = 7)
 
 # Plot proportions
 plot(time_points_scaled, proportions, type = "l", col = "red", xlim = c(0, 1), ylim = c(0, 0.4),

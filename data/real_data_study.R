@@ -20,9 +20,9 @@ silver_data <- read.csv('data/SLV.csv')
 gold_data <- read.csv('data/GLD.csv')
 
 # Extract the 'Open' prices
-silver <- silver_data$Open[1:1200]
-gold <- gold_data$Open[1:1200]
-date_line <- silver_data$Date[1:1200]
+silver <- silver_data$Open[1:1100]
+gold <- gold_data$Open[1:1100]
+date_line <- silver_data$Date[1:1100]
 date_line <- as.Date(date_line)
 
 # Set the initial guess for B and range for optimization
@@ -45,12 +45,15 @@ cat("Minimum Negative Log-Likelihood:", optimal_neg_log_likelihood, "\n")
 
 
 # Optimal B obtained from the previous optimization step
-optimal_B <- 0.5413138  
+optimal_B <- 0.5377936
 
 # Compute the optimal OU path
-OU_path <- 1/157.47 * gold - optimal_B/38.27 * silver
-plot.ts(OU_path)
+OU_path <- 1/gold[1] * gold - optimal_B/silver[1] * silver
 
+pdf("plots/silver_gold_OU.pdf", width = 12, height = 7)
+plot(date_line, OU_path, type = "l",
+     xlab = "Date", ylab = "Value")
+dev.off()
 
 
 
@@ -63,7 +66,7 @@ plot_boundary_gold_silver <- function(data, inferred_results, split_index, date_
   # Plot the data up to the split point
   plot(date_line[1:split_index], as.numeric(data[1:split_index]), type = "l", col = "black", 
        xlim = range(date_line), ylim = range(c(min(data), max(data))),
-       xlab = "Date", ylab = "Value", main = "Inferred Boundary and Data")
+       xlab = "Date", ylab = "Value")
   
   # Add the data after the split as a dotted line
   lines(date_line[(split_index + 1):length(data)], data[(split_index + 1):length(data)], col = "black", lty = 2)
@@ -83,7 +86,7 @@ plot_boundary_gold_silver <- function(data, inferred_results, split_index, date_
   abline(v = date_line[split_index], col = "black", lwd = 1)
   
   # Add the shaded area from the 400th observation to the split point
-  shade_start <- split_index - 100
+  shade_start <- split_index - 200
   rect(xleft = date_line[shade_start + 1], ybottom = min(data), 
        xright = date_line[split_index], ytop = max(data), 
        col = rgb(0.6, 0.6, 1, 0.2), border = NA)
@@ -97,12 +100,12 @@ total_profit_crossing <- 0
 total_profit_crossing_lower_bound <- 0
 total_profit_expiration <- 0
 
-testing_length <- 15
+testing_length <- 60
 # Loop to update start variable and plot results
-for (start in seq(0, length(OU_path) - 115, by = testing_length)) {
+for (start in seq(0, length(OU_path) - 260, by = testing_length)) {
   
   # Define training and testing length
-  training_length <- start + 100
+  training_length <- start + 200
   
   # Extract training and testing data
   training_data <- OU_path[start + 1:(training_length - start)]
@@ -110,12 +113,21 @@ for (start in seq(0, length(OU_path) - 115, by = testing_length)) {
   
   # Infer the boundary using the training data
   inferred_results <- infer_boundary_gold_silver(training_data, delta = 1/252, z_alpha = 0.1, partition_length = testing_length)
-  print(inferred_results$boundary_est)
+  #print(inferred_results$boundary_est)
   # Define the split index
   split_index <- training_length
   
+  # Create a filename for each plot
+  plot_filename <- paste0("gold_silver_", start, ".pdf")
+  
+  # Open a PDF device
+  pdf(plot_filename, width = 12, height = 7)
+  
   # Plot the boundary
   plot_boundary_gold_silver(OU_path, inferred_results, split_index, date_line)
+  
+  # Close the PDF device
+  dev.off()
   
   # Check the relationship between the first testing data point and the inferred boundary
   initial_test_value <- testing_data[1]

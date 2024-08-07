@@ -207,7 +207,7 @@ infer_boundary <- function(X, delta, z_alpha = 0.1, partition_length = 100, stri
   
   
   ## Uncomment to replicate GLD-SLV study
-  strike <- est_theta$mu
+  # strike <- est_theta$mu
   
   theta_list <- c(alpha = est_theta$alpha, mu = est_theta$mu, sigma2 = est_theta$sigma2)
   boundary <- boundary_wrapper(theta_list, strike = strike, partition_length = partition_length, expiration = expiration)

@@ -2,16 +2,16 @@ library(goffda)
 library(ggplot2)
 library(plotly)
 
-check_convergence <- function(mu, sigma2, alpha, T = 4, delta = 0.01, M = 1000, alpha_level = 0.05) {
+check_convergence <- function(file_paths, mu, sigma2, alpha, T = 4, delta = 0.01, alpha_level = 0.05) {
   n <- T / delta
   theta <- c(alpha, mu, sigma2)
   K <- length(theta)
   
-  chi_squared_stats <- numeric(M)
-  vectors <- matrix(NA, nrow = M, ncol = K)
+  chi_squared_stats <- numeric(length(file_paths))
+  vectors <- matrix(NA, nrow = length(file_paths), ncol = K)
   
-  for (i in 1:M) {
-    X <- r_ou(n = 1, t = seq(0, T, len = n), x0 = 28, mu = mu, sigma = sqrt(sigma2), alpha = alpha)$data
+  for (i in 1:length(file_paths)) {
+    X <- readRDS(file_paths[i])[1:400]
     
     result <- est_OU(X, delta)
     
@@ -34,17 +34,20 @@ check_convergence <- function(mu, sigma2, alpha, T = 4, delta = 0.01, M = 1000, 
               coverage_probability = coverage_probability))
 }
 
-# Parameters
+# Define the parameters
+M <- 200
 mu <- 20
 sigma2 <- 2
 alpha <- 3
-M <- 1000
+T <- 4
+delta <- 0.01
 alpha_level <- 0.1
 
+# List all paths to the rds files
+file_paths <- list.files("rds_files", pattern = "X_path_.*\\.rds", full.names = TRUE)
 
-
-# Check convergence for n=1000
-convergence_results <- check_convergence(mu, sigma2, alpha, M = M, alpha_level = alpha_level)
+# Check convergence using pre-generated data and specified parameters
+convergence_results <- check_convergence(file_paths, mu, sigma2, alpha, T, delta, alpha_level)
 
 coverage_probability <- convergence_results$coverage_probability
 vectors <- convergence_results$vectors
@@ -86,8 +89,8 @@ fig <- plot_ly(x = vectors[,1], y = vectors[,2], z = vectors[,3],
 
 # Show the plot
 fig
-#kaleido(fig, "C:/Users/alvar/Desktop/OptimalStoppingOUz_j_plot.pdf")
-
+# Save the plot if desired
+# kaleido(fig, "C:/Users/alvar/Desktop/OptimalStoppingOUz_j_plot.pdf")
 
 # Calculate the critical value for the given confidence level
 z_alpha <- qnorm(1 - alpha_level / 2)
@@ -96,10 +99,8 @@ z_alpha <- qnorm(1 - alpha_level / 2)
 standard_error <- sqrt(alpha_level * (1 - alpha_level) / M)
 
 # Compute the confidence interval
-lower_bound <- (1-alpha_level) - z_alpha * standard_error
-upper_bound <- (1-alpha_level) + z_alpha * standard_error
+lower_bound <- (1 - alpha_level) - z_alpha * standard_error
+upper_bound <- (1 - alpha_level) + z_alpha * standard_error
 
 cat("Observed coverage probability:", coverage_probability, "\n")
 cat("90% Confidence interval:", lower_bound, "-", upper_bound, "\n")
-
-

@@ -9,7 +9,7 @@ plot_boundary <- function(data, inferred_results, actual_boundary, split_index, 
   
   # Create a plotting device with time as the x-axis
   plot(time_points[1:split_index], as.numeric(data[1:split_index]), type = "l", col = "black",
-       xlim = c(0, max(time_points)), ylim = range(c(min(data), max(data))),
+       xlim = c(0, max(time_points)), ylim = range(c(14, max(data))),
        xlab = "Time", ylab = "Value")
   
   # Add the data after the split as a dotted line
@@ -36,7 +36,7 @@ plot_boundary <- function(data, inferred_results, actual_boundary, split_index, 
 }
 
 # Load the specified file index
-file_index <- 5  # Replace with the desired file index
+file_index <- 1  # Replace with the desired file index
 folder_name <- "rds_files"
 
 # Define file paths
@@ -55,8 +55,9 @@ timestep <- 0.01
 actual_boundary <- boundary_wrapper(c(alpha = 3, mu = 20, sigma2 = 2), partition_length = 100, strike = 19.5, expiration = 1)
 
 
-pdf_filename <- paste0("plots/boundary_plot_path_", file_index, ".pdf")
+pdf_filename <- paste0("scenario_plots/boundary_plot_path_", file_index, ".pdf")
 # Save the plot as a PDF
-pdf(file = pdf_filename)
+pdf(file = pdf_filename, width = 12, height = 7)
 plot_boundary(data, inferred_results, actual_boundary, split_index, timestep)
 dev.off()
+

@@ -3,7 +3,7 @@ library(dplyr)
 
 # Define the folder and number of files
 folder_name <- "rds_files"
-num_files <- 100  # Number of files to process
+num_files <- 200  # Number of files to process
 
 # Initialize vectors to store profits for each path
 profits_expiration <- numeric(num_files)
@@ -65,12 +65,14 @@ for (file_index in 1:num_files) {
 }
 
 # Summarize the results
-total_profit_expiration <- sum(profits_expiration)
-total_profit_crossing <- sum(profits_crossing)
-total_profit_lower_bound <- sum(profits_lower_bound)
-total_profit_upper_bound <- sum(profits_upper_bound)
+# Compute mean profits for each strategy
+mean_profit_expiration <- mean(profits_expiration)
+mean_profit_crossing <- mean(profits_crossing)
+mean_profit_lower_bound <- mean(profits_lower_bound)
+mean_profit_upper_bound <- mean(profits_upper_bound)
 
-cat("Total Profit from Holding Until Expiration:", total_profit_expiration, "\n")
-cat("Total Profit from Exiting on Crossing the Boundary:", total_profit_crossing, "\n")
-cat("Total Profit from Exiting on Crossing the Lower Bound:", total_profit_lower_bound, "\n")
-cat("Total Profit from Exiting on Crossing the Upper Bound:", total_profit_upper_bound, "\n")
+# Summarize the results
+cat("Mean Profit from Holding Until Expiration:", mean_profit_expiration, "\n")
+cat("Mean Profit from Exiting on Crossing the Boundary:", mean_profit_crossing, "\n")
+cat("Mean Profit from Exiting on Crossing the Lower Bound:", mean_profit_lower_bound, "\n")
+cat("Mean Profit from Exiting on Crossing the Upper Bound:", mean_profit_upper_bound, "\n")
