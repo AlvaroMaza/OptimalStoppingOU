@@ -1,7 +1,7 @@
 library(parallel)
 library(goffda)
 
-compute_proportion_parallel <- function(M = 100) {
+compute_proportion_parallel <- function(M = 200) {
   # Set up the cluster with the number of cores to use
   num_cores <- detectCores() - 1
   cl <- makeCluster(num_cores)
@@ -15,7 +15,7 @@ compute_proportion_parallel <- function(M = 100) {
   process_trial <- function(trial_index) {
     
     # Generate sample paths
-    X_sample <- r_ou(n = 1, t = seq(0, 5, len = 500), x0 = 30, mu = 20, sigma = sqrt(2), alpha = 3)$data
+    X_sample <- r_ou(n = 1, t = seq(0, 5, len = 500), x0 = 26, mu = 20, sigma = sqrt(2), alpha = 3)$data
     
     # Split the sample
     X_training <- X_sample[1:400]
